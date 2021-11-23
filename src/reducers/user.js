@@ -9,9 +9,11 @@ const userReducer = (state = INITIAL_STATE, action) => {
   switch (action.type) {
   case INPUT_EMAIL:
     return {
-      ...state, email: action.payload,
+      ...state,
+      email: action.payload,
     };
-  default: return state;
+  default:
+    return state;
   }
 };
 
