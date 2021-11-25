@@ -10,7 +10,16 @@ const walletReducer = (state = INITIAL_STATE, action) => {
   case 'GET_CURRENCIES':
     return {
       ...state,
-      currencies: action.payload,
+      expenses: action.payload,
+    };
+  case 'INPUT_EXPENSE':
+    return {
+      ...state,
+      expenses: [
+        ...state.expenses,
+        { id: state.expenses.length,
+          ...action.payload,
+        }],
     };
   default:
     return state;

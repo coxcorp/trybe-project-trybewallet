@@ -1,18 +1,40 @@
+import PropTypes from 'prop-types';
 import React from 'react';
+import { connect } from 'react-redux';
+import { inputExpense } from '../actions';
 
 class InputExpenses extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
+    const INITIAL_STATE = {
       value: 0,
       description: '',
-      currency: '',
+      currency: 'USD',
       method: '',
       tag: '',
     };
 
+    this.state = {
+      ...INITIAL_STATE,
+      exchangeRates: {},
+      currenciesName: [],
+    };
+
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
+  }
+
+  componentDidMount() {
+    this.fecthAPI();
+  }
+
+  // ref.: https://github.com/tryber/sd-015-a-project-trybewallet/pull/106/files
+  async fecthAPI() {
+    const response = await fetch('https://economia.awesomeapi.com.br/json/all').then((data) => data.json());
+    this.setState({
+      exchangeRates: (response),
+      currenciesName: Object.keys(response).filter((currency) => currency !== 'USDT'),
+    });
   }
 
   handleChange({ target }) {
@@ -24,9 +46,18 @@ class InputExpenses extends React.Component {
 
   handleSubmit(event) {
     event.preventDefault();
-    // const { history, getEmail } = this.props;
-    // const { value, description, currency, method, tag } = this.state;
-    console.log(event);
+    this.fecthAPI();
+    const { value, description, currency, method, tag, exchangeRates } = this.state;
+    const { getExpense } = this.props;
+    const INITIAL_STATE = {
+      value: 0,
+      description: '',
+      currency: 'USD',
+      method: '',
+      tag: '',
+    };
+    getExpense({ value, description, currency, method, tag, exchangeRates });
+    this.setState({ ...INITIAL_STATE });
   }
 
   renderValueInput() {
@@ -38,6 +69,7 @@ class InputExpenses extends React.Component {
           data-testid="value-input"
           type="number"
           name="value"
+          id="value-input"
           value={ value }
           onChange={ this.handleChange }
         />
@@ -62,20 +94,20 @@ class InputExpenses extends React.Component {
   }
 
   renderCurrencyInput() {
-    const { currency } = this.state;
+    const { currency, currenciesName } = this.state;
     return (
       <label htmlFor="currency-input">
-        Moeda:&nbsp;
+        Moeda
         <select
           data-testid="currency-input"
           name="currency"
+          id="currency-input"
           value={ currency }
           onChange={ this.handleChange }
         >
-          <option> - </option>
-          <option value="USD">USD</option>
-          <option value="CAD">CAD</option>
-          <option value="BRL">BRL</option>
+          {currenciesName.map((unit) => (
+            <option key={ unit } value={ unit }>{ unit }</option>
+          ))}
         </select>
       </label>
     );
@@ -89,6 +121,7 @@ class InputExpenses extends React.Component {
         <select
           data-testid="method-input"
           name="method"
+          id="method-input"
           value={ method }
           onChange={ this.handleChange }
         >
@@ -109,6 +142,7 @@ class InputExpenses extends React.Component {
         <select
           data-testid="tag-input"
           name="tag"
+          id="tag-input"
           value={ tag }
           onChange={ this.handleChange }
         >
@@ -147,4 +181,13 @@ class InputExpenses extends React.Component {
   }
 }
 
-export default InputExpenses;
+InputExpenses.propTypes = {
+  getExpense: PropTypes.func.isRequired,
+};
+
+const mapDispatchToProps = (dispatch) => ({
+  getExpense: (state) => dispatch(inputExpense(state)),
+  // getCurrencies: (state) => dispatch(inputCurrencies(state)),
+});
+
+export default connect(null, mapDispatchToProps)(InputExpenses);
